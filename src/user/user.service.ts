@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class UserService {
@@ -32,16 +31,5 @@ export class UserService {
   async signup(createUserDto: CreateUserDto): Promise<User> {
     const newUser = this.userRepository.create(createUserDto);
     return this.userRepository.save(newUser);
-  }
-
-  async login(loginUserDto: LoginUserDto): Promise<User | null> {
-    const { email, password } = loginUserDto;
-    const user = await this.userRepository.findOne({ where: { email } });
-
-    if (user && user.password === password) {
-      return user;
-    }
-
-    return null;
   }
 }

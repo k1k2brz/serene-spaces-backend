@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './user.controller';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { AuthSharedModule } from '@/shared/auth-shared.module';
+import { AuthSharedModule } from '@/user/shared/auth-shared.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), AuthSharedModule],
