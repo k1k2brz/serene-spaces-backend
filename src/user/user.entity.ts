@@ -1,4 +1,4 @@
-import { UserRole } from '@/types';
+import { UserRole } from '@/_types';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

@@ -1,4 +1,4 @@
-import { UserRole } from '@/types';
+import { UserRole } from '@/_types';
 
 // create-user.dto.ts
 export class CreateUserDto {
