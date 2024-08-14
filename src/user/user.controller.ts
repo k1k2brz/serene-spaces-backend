@@ -1,19 +1,10 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpException,
-  HttpStatus,
-  Get,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
-import { UserService } from './user.service';
+import { AuthService } from '@/user/auth/auth.service';
+import { JwtAuthGuard } from '@/user/auth/jwt.auth.guard';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from './user.entity';
-import { JwtAuthGuard } from '@/user/auth/jwt.auth.guard';
-import { AuthService } from '@/user/auth/auth.service';
+import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
@@ -29,14 +20,7 @@ export class UserController {
 
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
-    const user = await this.userService.validateUser(
-      loginUserDto.email,
-      loginUserDto.password,
-    );
-    if (!user) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-    }
-    return this.authService.login(user);
+    return this.authService.login(loginUserDto);
   }
 
   @UseGuards(JwtAuthGuard)

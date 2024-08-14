@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -18,8 +19,8 @@ export class UserService {
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { email } });
-    if (user && user.password === password) {
-      // 실제로는 해싱된 비밀번호 비교가 필요합니다.
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // 비밀번호 검사
       return user;
     }
     return null;
@@ -34,7 +35,19 @@ export class UserService {
   }
 
   async signup(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = this.userRepository.create(createUserDto);
+    const { email, password, role } = createUserDto;
+
+    // 비밀번호 해싱
+    const saltRounds = 10; // 해싱 강도
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // 유저 생성 및 저장
+    const newUser = this.userRepository.create({
+      email,
+      password: hashedPassword,
+      role,
+    });
+
     return this.userRepository.save(newUser);
   }
 }
