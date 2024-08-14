@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './user/auth/auth.module';
 
 @Module({
   imports: [
@@ -21,10 +22,11 @@ import { UserModule } from './user/user.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // 개발 중에만 true로 설정, 실제 운영에서는 false로 변경
+        synchronize: configService.get<boolean>('TYPEORM_SYNC'), // 개발 중에만 true로 설정, 실제 운영에서는 false로 변경
       }),
     }),
     UserModule, // 유저 모듈
+    AuthModule, // JWT 모듈
   ],
   controllers: [AppController],
   providers: [AppService],
