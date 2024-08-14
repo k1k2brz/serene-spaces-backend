@@ -8,7 +8,7 @@ import { RefreshTokenService } from '../token/refresh-token.service';
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly userService: UserService, // UserService 주입
+    private readonly userService: UserService,
     private readonly refreshTokenService: RefreshTokenService,
   ) {}
 
@@ -24,7 +24,11 @@ export class AuthService {
     }
 
     // JWT 토큰 생성
-    const payload = { email: user.email, sub: user.id };
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      tokenVersion: user.tokenVersion,
+    };
     const access_token = this.jwtService.sign(payload);
 
     const refreshToken =

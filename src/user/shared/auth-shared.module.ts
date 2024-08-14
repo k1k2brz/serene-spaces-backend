@@ -7,10 +7,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from '../token/refresh-token.entity';
 import { RefreshTokenService } from '../token/refresh-token.service';
+import { AccessToken } from '../token/access-token.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, RefreshToken]),
+    TypeOrmModule.forFeature([User, RefreshToken, AccessToken]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

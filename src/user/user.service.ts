@@ -11,6 +11,11 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  // User 엔티티를 저장 또는 업데이트하는 메서드
+  async save(user: User): Promise<User> {
+    return this.userRepository.save(user);
+  }
+
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { email } });
     if (user && user.password === password) {
