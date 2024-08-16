@@ -2,6 +2,7 @@ import { UserRole } from '@/_types';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { RefreshToken } from './token/refresh-token.entity';
 import { AccessToken } from './token/access-token.entity';
+import { Product } from '@/product/product.entity';
 
 @Entity()
 export class User {
@@ -31,4 +32,7 @@ export class User {
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];
+
+  @OneToMany(() => Product, (product) => product.vendor)
+  products: Product[];
 }

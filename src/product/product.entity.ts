@@ -1,0 +1,23 @@
+import { User } from '@/user/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+
+@Entity()
+export class Product {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  name: string;
+
+  @Column()
+  description: string;
+
+  @Column('decimal') // 숫자 타입 중에서 소수점을 포함한 고정 소수점 수를 저장
+  price: number;
+
+  @Column('simple-array') // 쉼표로 구분된 문자열로 배열을 저장 (ex: 배열이 image1.jpg,image2.jpg,image3.jpg로 저장)
+  images: string[];
+
+  @ManyToOne(() => User, (user) => user.products)
+  vendor: User;
+}
