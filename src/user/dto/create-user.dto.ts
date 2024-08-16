@@ -12,7 +12,7 @@ export class CreateUserDto {
 
   @ApiProperty({
     description: '유저의 권한',
-    default: 'user',
+    default: 'customer',
     enum: [Object.values(userRole)],
   })
   role?: UserRole;
