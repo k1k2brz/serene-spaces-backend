@@ -1,5 +1,12 @@
+import { Review } from '@/review/review.entity';
 import { User } from '@/user/user.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 
 @Entity()
 export class Product {
@@ -18,6 +25,12 @@ export class Product {
   @Column('simple-array') // 쉼표로 구분된 문자열로 배열을 저장 (ex: 배열이 image1.jpg,image2.jpg,image3.jpg로 저장)
   images: string[];
 
+  @Column()
+  companyName: string;
+
   @ManyToOne(() => User, (user) => user.products)
   vendor: User;
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews: Review[];
 }

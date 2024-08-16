@@ -13,7 +13,7 @@ import { ProductService } from './product.service';
 
 import { userRole } from '@/_configs';
 import { RolesGuard } from '@/_lib/guard/role.guard';
-import { Roles } from '@/decorator/roles.decorator';
+import { Roles } from '@/_decorator/roles.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 

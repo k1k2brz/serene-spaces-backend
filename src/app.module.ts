@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './user/auth/auth.module';
 import { ProductModule } from './product/product.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ProductModule } from './product/product.module';
     UserModule, // 유저 모듈
     AuthModule, // JWT 모듈
     ProductModule, // Product 모듈
+    ReviewModule, // Review 모듈
   ],
   controllers: [AppController],
   providers: [AppService],

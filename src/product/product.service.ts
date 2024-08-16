@@ -25,6 +25,7 @@ export class ProductService {
   ): Promise<Product> {
     const product = this.productRepository.create({
       ...createProductDto,
+      companyName: user.companyName,
       vendor: user,
     });
     return this.productRepository.save(product);

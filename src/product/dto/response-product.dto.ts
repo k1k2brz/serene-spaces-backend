@@ -14,5 +14,7 @@ export class ProductResponseDto {
   @ApiProperty()
   options: string[];
   @ApiProperty()
+  companyName: string;
+  @ApiProperty()
   vendorId: number; // 제품을 등록한 사용자의 ID
 }
