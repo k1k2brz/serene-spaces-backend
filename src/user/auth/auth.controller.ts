@@ -76,7 +76,7 @@ export class AuthController {
         tokenVersion: newAccessToken.user.tokenVersion,
       },
       {
-        expiresIn: '30m',
+        expiresIn: '1h',
       },
     );
 

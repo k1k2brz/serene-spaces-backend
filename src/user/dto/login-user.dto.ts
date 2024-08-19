@@ -3,11 +3,17 @@ import { IsEmail, IsNotEmpty } from 'class-validator';
 
 // login-user.dto.ts
 export class LoginUserDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: '유저의 이메일',
+    example: 'acme@email.com',
+  })
   @IsEmail()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: '유저의 비밀번호',
+    example: '1234',
+  })
   @IsNotEmpty()
   password: string;
 }

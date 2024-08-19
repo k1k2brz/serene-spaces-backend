@@ -18,7 +18,7 @@ export class User {
 
   @Column({
     type: 'varchar',
-    default: 'user', // 기본값 설정
+    default: 'customer', // 기본값 설정
   })
   role: UserRole;
 
@@ -26,7 +26,10 @@ export class User {
   isActive: boolean;
 
   @Column()
-  companyName: string; // 회사명 필드 추가
+  companyName: string;
+
+  @Column({ nullable: true })
+  logoUrl: string; // 회사 로고
 
   @Column({ default: 0 })
   tokenVersion: number;

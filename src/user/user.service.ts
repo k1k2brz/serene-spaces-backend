@@ -9,6 +9,8 @@ import { InvalidPasswordException } from '@/_exceptions/user/password/password-i
 import { UserNotFoundException } from '@/_exceptions/user/user-not-found.exception';
 import { EmailAlreadyExistsException } from '@/_exceptions/user/email/email-already-exists.exception';
 import { CompanyNameRequiredException } from '@/_exceptions/user/company/companyname-required.exception';
+import { UpdateUserDto } from './dto/update-user.dto';
+import * as fs from 'fs';
 
 @Injectable()
 export class UserService {
@@ -50,7 +52,7 @@ export class UserService {
 
   // 회원가입
   async signup(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password, role, companyName } = createUserDto;
+    const { email, password, role, companyName, logoUrl } = createUserDto;
 
     const existingUser = await this.userRepository.findOne({
       where: { email },
@@ -81,8 +83,52 @@ export class UserService {
       password: hashedPassword,
       role,
       companyName,
+      logoUrl,
     });
 
     return this.userRepository.save(newUser);
+  }
+
+  async updateUser(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    file?: Express.Multer.File,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    if (file) {
+      // 기존 로고 이미지 삭제 로직 추가 (파일 시스템에서 삭제)
+      if (user.logoUrl) {
+        // 로고 이미지 파일 경로로 삭제
+        fs.unlinkSync(
+          `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
+        );
+      }
+      user.logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
+    }
+
+    // 사용자 정보 업데이트
+    Object.assign(user, updateUserDto);
+
+    return this.userRepository.save(user);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    // 로고 이미지가 있는 경우 삭제
+    if (user.logoUrl) {
+      fs.unlinkSync(
+        `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
+      );
+    }
+
+    await this.userRepository.delete(id);
   }
 }
