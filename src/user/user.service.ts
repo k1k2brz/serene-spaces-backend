@@ -11,6 +11,8 @@ import { EmailAlreadyExistsException } from '@/_exceptions/user/email/email-alre
 import { CompanyNameRequiredException } from '@/_exceptions/user/company/companyname-required.exception';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as fs from 'fs';
+import { UserResponseDto } from './dto/response-user.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserService {
@@ -41,13 +43,21 @@ export class UserService {
     return user;
   }
 
+  // 유저 전체
+  async getAllUsers(): Promise<UserResponseDto[]> {
+    const users = await this.userRepository.find();
+    return users.map((user) => plainToInstance(UserResponseDto, user));
+  }
+
   // 유저 정보 받기
-  async findById(id: number): Promise<User> {
+  async findById(id: number): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new UserNotFoundException();
     }
-    return user;
+
+    const { password, ...rest } = user;
+    return plainToInstance(UserResponseDto, rest);
   }
 
   // 회원가입
