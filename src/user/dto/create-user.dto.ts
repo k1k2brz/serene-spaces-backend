@@ -9,7 +9,6 @@ import {
   ValidateIf,
 } from 'class-validator';
 
-// create-user.dto.ts
 export class CreateUserDto {
   @ApiProperty({
     description: '유저의 이메일',

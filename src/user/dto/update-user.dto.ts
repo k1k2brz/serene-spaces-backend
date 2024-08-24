@@ -24,7 +24,7 @@ export class UpdateUserDto {
     description: '기업 로고 이미지 URL',
     example: 'https://example.com/logo.png',
   })
-  @ValidateIf((o) => o.role === userRole.VENDOR) // VENDOR일 때만 필수
+  @ValidateIf((o) => o.role === userRole.VENDOR)
   @IsOptional() // VENDOR가 아닐 경우 선택 사항
   @IsString()
   logoUrl?: string;

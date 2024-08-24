@@ -42,7 +42,6 @@ export class UserController {
   }
 
   // 전체 유저 받기
-  @UseGuards(JwtAuthGuard)
   @Get()
   async getAllUsers(): Promise<UserResponseDto[]> {
     return this.userService.getAllUsers();

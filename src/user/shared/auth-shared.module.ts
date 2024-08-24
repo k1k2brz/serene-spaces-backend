@@ -9,6 +9,7 @@ import { RefreshToken } from '../token/refresh-token.entity';
 import { RefreshTokenService } from '../token/refresh-token.service';
 import { AccessToken } from '../token/access-token.entity';
 
+// 순환참조 방지용
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, RefreshToken, AccessToken]),

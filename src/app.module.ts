@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './user/auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { ReviewModule } from './review/review.module';
+import { CspMiddleware } from './csp/csp.middleware';
 
 @Module({
   imports: [
@@ -35,4 +36,9 @@ import { ReviewModule } from './review/review.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  // CSP 적용
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CspMiddleware).forRoutes('*'); // 모든 라우트에 대해 미들웨어 적용
+  }
+}
