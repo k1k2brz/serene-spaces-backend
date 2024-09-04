@@ -18,7 +18,7 @@ import { AccessToken } from '../token/access-token.entity';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '2h' },
+        signOptions: { expiresIn: '14d' },
       }),
     }),
   ],

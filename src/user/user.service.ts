@@ -13,6 +13,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import * as fs from 'fs';
 import { UserResponseDto } from './dto/response-user.dto';
 import { plainToInstance } from 'class-transformer';
+import { userRole } from '@/_configs';
 
 @Injectable()
 export class UserService {
@@ -61,25 +62,26 @@ export class UserService {
   }
 
   // 회원가입
-  async signup(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password, role, companyName, logoUrl } = createUserDto;
+  async signup(createUserDto: CreateUserDto, logoUrl?: string): Promise<User> {
+    const { email, password, role, companyName } = createUserDto;
 
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
-    if (existingUser) {
-      throw new EmailAlreadyExistsException();
-    }
 
     if (!email) {
       throw new InvalidEmailException();
+    }
+
+    if (existingUser) {
+      throw new EmailAlreadyExistsException();
     }
 
     if (!password) {
       throw new InvalidPasswordException();
     }
 
-    if (role === 'VENDOR' && !companyName) {
+    if (role === userRole.VENDOR && !companyName) {
       throw new CompanyNameRequiredException();
     }
 

@@ -11,6 +11,7 @@ import { User } from '../user/user.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { userRole } from '@/_configs';
+import { ProductNotFoundException } from '@/_exceptions/product/product-not-found.exception';
 
 @Injectable()
 export class ProductService {
@@ -28,12 +29,18 @@ export class ProductService {
       companyName: user.companyName,
       vendor: user,
     });
+
     return this.productRepository.save(product);
   }
 
   // 제품 조회
   async getProductById(id: number): Promise<Product> {
-    return this.productRepository.findOne({ where: { id } });
+    const product = await this.productRepository.findOne({ where: { id } });
+    if (!product) {
+      throw new ProductNotFoundException();
+    }
+
+    return product;
   }
 
   // 전체 제품 조회

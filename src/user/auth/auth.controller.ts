@@ -2,7 +2,7 @@ import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenService } from '../token/refresh-token.service';
 import { UserService } from '../user.service';
-import { JwtAuthGuard } from './jwt.auth.guard';
+import { JwtAuthGuard } from '../../_lib/guard/jwt.auth.guard';
 import { AuthHeaderMissingException } from '@/_exceptions/auth/auth-header-missing.exception';
 import { AuthInvalidException } from '@/_exceptions/auth/auth-invalid.exception';
 import { AuthRefreshInvalidException } from '@/_exceptions/auth/auth-refresh-invalid.exception';
@@ -63,7 +63,7 @@ export class AuthController {
         tokenVersion: newAccessToken.user.tokenVersion,
       },
       {
-        expiresIn: '1h',
+        expiresIn: '14d',
       },
     );
 

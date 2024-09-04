@@ -1,5 +1,5 @@
 import { AuthService } from '@/user/auth/auth.service';
-import { JwtAuthGuard } from '@/user/auth/jwt.auth.guard';
+import { JwtAuthGuard } from '@/_lib/guard/jwt.auth.guard';
 import {
   Body,
   Controller,
@@ -21,6 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/response-user.dto';
+import { imageFileFilter } from '@/_lib/interceptor/file.interceptor';
 
 @Controller('user')
 export class UserController {
@@ -31,8 +32,31 @@ export class UserController {
 
   // 회원가입
   @Post('signup')
-  async signup(@Body() createUserDto: CreateUserDto) {
-    return this.userService.signup(createUserDto);
+  @UseInterceptors(
+    FileInterceptor('logo', {
+      storage: diskStorage({
+        destination: process.env.UPLOAD_PATH || './uploads/logos',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
+        },
+      }),
+      fileFilter: imageFileFilter, // 파일 필터링
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 이하로 파일 크기 제한
+    }),
+  )
+  async signup(
+    @Body() createUserDto: CreateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    // file이 존재할 경우 파일 경로를 처리
+    let logoUrl = null;
+    if (file) {
+      logoUrl = `${process.env.UPLOAD_PATH || './uploads/logos'}/${file.filename}`;
+    }
+
+    return this.userService.signup(createUserDto, logoUrl);
   }
 
   // 로그인

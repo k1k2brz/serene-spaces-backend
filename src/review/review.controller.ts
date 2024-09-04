@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CustomerReviewDto } from './dto/customer-review.dto';
-import { JwtAuthGuard } from '@/user/auth/jwt.auth.guard';
+import { JwtAuthGuard } from '@/_lib/guard/jwt.auth.guard';
 
 @Controller('reviews')
 export class ReviewController {

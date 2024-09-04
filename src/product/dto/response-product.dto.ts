@@ -4,7 +4,7 @@ export class ProductResponseDto {
   @ApiProperty()
   id: number;
   @ApiProperty()
-  name: string;
+  productName: string;
   @ApiProperty()
   description: string;
   @ApiProperty()

@@ -1,9 +1,10 @@
 import { LoginUserDto } from '@/user/dto/login-user.dto';
 import { UserService } from '@/user/user.service';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenService } from '../token/refresh-token.service';
 import { v4 as uuidv4 } from 'uuid';
+import { InvalidEmailException } from '@/_exceptions/user/email/email-invalid.exception';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,7 @@ export class AuthService {
     );
 
     if (!user) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      throw new InvalidEmailException();
     }
 
     // JWT 토큰 생성
@@ -32,7 +33,7 @@ export class AuthService {
     };
 
     const jwtOptions = {
-      expiresIn: '1h',
+      expiresIn: '14d',
       jwtid: uuidv4(),
     };
 

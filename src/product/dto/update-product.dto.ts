@@ -5,7 +5,7 @@ export class UpdateProductDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
-  name?: string;
+  productName?: string;
 
   @ApiPropertyOptional()
   @IsString()

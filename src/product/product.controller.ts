@@ -8,6 +8,9 @@ import {
   Param,
   Put,
   Delete,
+  UnauthorizedException,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 
@@ -16,6 +19,9 @@ import { RolesGuard } from '@/_lib/guard/role.guard';
 import { Roles } from '@/_decorator/roles.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { JwtAuthGuard } from '@/_lib/guard/jwt.auth.guard';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 @Controller('products')
 export class ProductController {
@@ -23,9 +29,37 @@ export class ProductController {
 
   // 제품 등록 (authorization 추가)
   @Post('create')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(userRole.VENDOR, userRole.ADMIN)
-  async createProduct(@Body() createProductDto: CreateProductDto, @Req() req) {
+  @UseInterceptors(
+    FilesInterceptor('images', 5, {
+      // 'images' 필드에서 최대 5개의 파일을 처리
+      storage: diskStorage({
+        destination: './uploads/product',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
+        },
+      }),
+    }),
+  )
+  async createProduct(
+    @UploadedFiles() file: Express.Multer.File[],
+    @Body() createProductDto: CreateProductDto,
+    @Req() req,
+  ) {
+    if (!req.user || !req.user.role) {
+      throw new UnauthorizedException('User is not authenticated');
+    }
+
+    // 파일 경로를 DTO의 images 필드에 추가
+    createProductDto.images = file.map((file) => file.filename);
+
+    console.log('File:', file); // 파일이 제대로 들어오는지 확인
+    console.log('Body:', createProductDto); // 폼 필드들이 제대로 들어오는지 확인
+    console.log('Received user from request:', req.user); // 사용자 정보 확인
+
     return this.productService.createProduct(createProductDto, req.user);
   }
 
@@ -43,7 +77,7 @@ export class ProductController {
 
   // 제품 수정
   @Put(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(userRole.VENDOR, userRole.ADMIN)
   async updateProduct(
     @Param('id') id: number,
@@ -54,7 +88,7 @@ export class ProductController {
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(userRole.VENDOR, userRole.ADMIN)
   async deleteProduct(@Param('id') id: number, @Req() req) {
     return this.productService.deleteProduct(id, req.user);
