@@ -1,16 +1,12 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  HttpException,
-  HttpStatus,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenService } from '../token/refresh-token.service';
 import { UserService } from '../user.service';
-import { JwtAuthGuard } from './jwt.auth.guard';
+import { JwtAuthGuard } from '../../_lib/guard/jwt.auth.guard';
+import { AuthHeaderMissingException } from '@/_exceptions/auth/auth-header-missing.exception';
+import { AuthInvalidException } from '@/_exceptions/auth/auth-invalid.exception';
+import { AuthRefreshInvalidException } from '@/_exceptions/auth/auth-refresh-invalid.exception';
+import { AuthTokenMatchException } from '@/_exceptions/auth/auth-token-match.exception';
 
 @Controller('auth')
 export class AuthController {
@@ -27,10 +23,7 @@ export class AuthController {
     @Headers('authorization') authHeader: string,
   ) {
     if (!authHeader) {
-      throw new HttpException(
-        'Authorization header is missing',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new AuthHeaderMissingException();
     }
     const accessToken = authHeader.split(' ')[1]; // Bearer token 형식에서 토큰 추출
 
@@ -39,24 +32,18 @@ export class AuthController {
     try {
       payload = this.jwtService.verify(accessToken);
     } catch (err) {
-      throw new HttpException('Invalid access token', HttpStatus.UNAUTHORIZED);
+      throw new AuthInvalidException();
     }
 
     const refreshToken = await this.refreshTokenService.findToken({ token });
 
     if (!refreshToken || refreshToken.expiresAt < new Date()) {
-      throw new HttpException(
-        'Invalid or expired refresh token',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new AuthRefreshInvalidException();
     }
 
     // 리프레시 토큰이 액세스 토큰의 소유자와 일치하는지 확인
     if (refreshToken.user.id !== payload.sub) {
-      throw new HttpException(
-        'Refresh token does not match access token',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new AuthTokenMatchException();
     }
 
     const user = refreshToken.user;
@@ -76,7 +63,7 @@ export class AuthController {
         tokenVersion: newAccessToken.user.tokenVersion,
       },
       {
-        expiresIn: '30m',
+        expiresIn: '14d',
       },
     );
 

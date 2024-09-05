@@ -9,6 +9,26 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const corsOrigin = configService.get<string>('CORS_ORIGIN');
 
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     // 유효성 검사 실패 시 모든 에러 메시지를 반환
+  //     exceptionFactory: (validationErrors = []) => {
+  //       const errors = validationErrors.map((error) => ({
+  //         field: error.property,
+  //         errors: Object.values(error.constraints),
+  //       }));
+  //       return new HttpException(
+  //         {
+  //           message: '입력값 유효성 검사 실패',
+  //           code: 'VALIDATION_ERROR',
+  //           errors,
+  //         },
+  //         HttpStatus.BAD_REQUEST,
+  //       );
+  //     },
+  //   }),
+  // );
+
   const options = new DocumentBuilder()
     .setTitle('Serene Spaces API')
     .setDescription('Serene Spaces Swagger')
@@ -16,7 +36,7 @@ async function bootstrap() {
     .addServer('http://localhost:3065/', 'Local environment')
     // .addServer('https://staging.yourapi.com/', 'Staging')
     // .addServer('https://production.yourapi.com/', 'Production')
-    .addTag('Your API Tag')
+    .addTag('Serene Spaces API')
     .build();
 
   const document = SwaggerModule.createDocument(app, options);

@@ -1,10 +1,15 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './user/auth/auth.module';
+import { ProductModule } from './product/product.module';
+import { ReviewModule } from './review/review.module';
+import { CspMiddleware } from './csp/csp.middleware';
+import { RequestLoggerMiddleware } from './request-logger.middleware';
+// import { RequestLoggerMiddleware } from './request-logger.middleware';
 
 @Module({
   imports: [
@@ -27,8 +32,15 @@ import { AuthModule } from './user/auth/auth.module';
     }),
     UserModule, // 유저 모듈
     AuthModule, // JWT 모듈
+    ProductModule, // Product 모듈
+    ReviewModule, // Review 모듈
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CspMiddleware).forRoutes('*'); // CSP 적용
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*'); // logger
+  }
+}

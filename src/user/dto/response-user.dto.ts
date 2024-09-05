@@ -9,21 +9,13 @@ import {
   ValidateIf,
 } from 'class-validator';
 
-export class CreateUserDto {
+export class UserResponseDto {
   @ApiProperty({
     description: '유저의 이메일',
     example: 'acme@email.com',
   })
   @IsEmail()
   email: string;
-
-  @ApiProperty({
-    description: '유저의 비밀번호',
-    example: '1234',
-  })
-  @IsString()
-  @IsNotEmpty()
-  password: string;
 
   @ApiProperty({
     description: '유저의 권한',
@@ -46,8 +38,20 @@ export class CreateUserDto {
     description: '기업 로고 이미지 URL',
     example: 'https://example.com/logo.png',
   })
-  @ValidateIf((o) => o.role === userRole.VENDOR) // VENDOR일 때만 필수
+  @ValidateIf((o) => o.role === userRole.VENDOR)
   @IsString()
   @IsOptional() // VENDOR가 아닐 경우 선택 사항
   logoUrl?: string;
+
+  @ApiProperty({
+    description: '토큰검사',
+  })
+  @IsString()
+  tokenVersion: string;
+
+  @ApiProperty({
+    description: '유저 액티브',
+  })
+  @IsString()
+  isActive: string;
 }
