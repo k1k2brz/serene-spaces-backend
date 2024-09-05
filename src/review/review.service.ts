@@ -27,11 +27,13 @@ export class ReviewService {
     user: User,
   ): Promise<Review> {
     if (user.role !== userRole.CUSTOMER) {
+      // 고객 한정
       throw new ReviewCustomerOnlyException();
     }
 
-    const product = await this.productRepository.findOneBy({
-      id: customerReviewDto.productId,
+    const product = await this.productRepository.findOne({
+      where: { id: customerReviewDto.productId },
+      relations: ['reviews'],
     });
 
     if (!product) {
@@ -39,13 +41,18 @@ export class ReviewService {
     }
 
     const review = this.reviewRepository.create({
-      reviewText: customerReviewDto.reviewText,
+      comment: customerReviewDto.comment,
       rating: customerReviewDto.rating,
       product,
       customer: user,
     });
 
-    return this.reviewRepository.save(review);
+    await this.reviewRepository.save(review);
+
+    // 리뷰가 추가된 후 평균 레이팅 업데이트
+    await this.updateProductAverageRating(product.id);
+
+    return review;
   }
 
   async updateReview(
@@ -55,7 +62,7 @@ export class ReviewService {
   ): Promise<Review> {
     const review = await this.reviewRepository.findOne({
       where: { id: reviewId },
-      relations: ['customer'], // TypeORM이 엔티티 간의 관계를 로드할 때 사용하는 것
+      relations: ['customer', 'product'],
     });
 
     if (!review) {
@@ -66,10 +73,14 @@ export class ReviewService {
       throw new ReviewUpdateAuthException();
     }
 
-    review.reviewText = customerReviewDto.reviewText;
+    review.comment = customerReviewDto.comment;
     review.rating = customerReviewDto.rating;
 
-    return this.reviewRepository.save(review);
+    await this.reviewRepository.save(review);
+
+    await this.updateProductAverageRating(review.product.id);
+
+    return review;
   }
 
   async deleteReview(reviewId: number, user: User): Promise<void> {
@@ -88,5 +99,30 @@ export class ReviewService {
     }
 
     await this.reviewRepository.delete(reviewId);
+
+    await this.updateProductAverageRating(review.product.id);
+  }
+
+  // 평균 레이팅 업데이트
+  async updateProductAverageRating(productId: number): Promise<void> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+      relations: ['reviews'],
+    });
+
+    if (!product) {
+      throw new ProductNotFoundException();
+    }
+
+    const totalRatings = product.reviews.reduce(
+      (sum, review) => sum + review.rating,
+      0,
+    );
+    const averageRating =
+      product.reviews.length > 0 ? totalRatings / product.reviews.length : 0;
+
+    product.averageRating = averageRating;
+
+    await this.productRepository.save(product);
   }
 }

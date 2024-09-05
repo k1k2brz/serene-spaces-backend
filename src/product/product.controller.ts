@@ -56,9 +56,9 @@ export class ProductController {
     // 파일 경로를 DTO의 images 필드에 추가
     createProductDto.images = file.map((file) => file.filename);
 
-    console.log('File:', file); // 파일이 제대로 들어오는지 확인
-    console.log('Body:', createProductDto); // 폼 필드들이 제대로 들어오는지 확인
-    console.log('Received user from request:', req.user); // 사용자 정보 확인
+    console.log('File:', file);
+    console.log('Body:', createProductDto);
+    console.log('Received user from request:', req.user);
 
     return this.productService.createProduct(createProductDto, req.user);
   }

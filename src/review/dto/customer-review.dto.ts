@@ -5,7 +5,7 @@ export class CustomerReviewDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  reviewText: string;
+  comment: string;
 
   @ApiProperty()
   @IsNumber()

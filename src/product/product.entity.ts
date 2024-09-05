@@ -28,6 +28,9 @@ export class Product {
   @Column()
   companyName: string;
 
+  @Column('decimal', { precision: 2, scale: 1, default: 0 })
+  averageRating: number;
+
   @ManyToOne(() => User, (user) => user.products)
   vendor: User;
 

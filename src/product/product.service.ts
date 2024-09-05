@@ -35,7 +35,10 @@ export class ProductService {
 
   // 제품 조회
   async getProductById(id: number): Promise<Product> {
-    const product = await this.productRepository.findOne({ where: { id } });
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['reviews'],
+    });
     if (!product) {
       throw new ProductNotFoundException();
     }

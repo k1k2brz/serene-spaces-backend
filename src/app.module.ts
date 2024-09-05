@@ -8,8 +8,6 @@ import { AuthModule } from './user/auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { ReviewModule } from './review/review.module';
 import { CspMiddleware } from './csp/csp.middleware';
-import { RequestLoggerMiddleware } from './request-logger.middleware';
-// import { RequestLoggerMiddleware } from './request-logger.middleware';
 
 @Module({
   imports: [
@@ -41,6 +39,6 @@ import { RequestLoggerMiddleware } from './request-logger.middleware';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(CspMiddleware).forRoutes('*'); // CSP 적용
-    consumer.apply(RequestLoggerMiddleware).forRoutes('*'); // logger
+    // consumer.apply(RequestLoggerMiddleware).forRoutes('*'); // logger
   }
 }
