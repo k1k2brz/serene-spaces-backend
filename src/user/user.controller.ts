@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { AuthService } from '@/user/auth/auth.service';
 import { JwtAuthGuard } from '@/_lib/guard/jwt.auth.guard';
 import {
@@ -35,14 +36,26 @@ export class UserController {
   @UseInterceptors(
     FileInterceptor('logo', {
       storage: diskStorage({
-        destination: process.env.UPLOAD_PATH || './uploads/logos',
+        destination: async (req, file, cb) => {
+          const uploadPath = process.env.UPLOAD_PATH;
+
+          // 폴더가 존재하지 않으면 생성
+          try {
+            if (!fs.existsSync(uploadPath)) {
+              await fs.promises.mkdir(uploadPath, { recursive: true });
+            }
+            cb(null, uploadPath);
+          } catch (err) {
+            cb(err, uploadPath);
+          }
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
         },
       }),
-      fileFilter: imageFileFilter, // 파일 필터링
+      fileFilter: imageFileFilter,
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 이하로 파일 크기 제한
     }),
   )
@@ -53,7 +66,7 @@ export class UserController {
     // file이 존재할 경우 파일 경로를 처리
     let logoUrl = null;
     if (file) {
-      logoUrl = `${process.env.UPLOAD_PATH || './uploads/logos'}/${file.filename}`;
+      logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
     }
 
     return this.userService.signup(createUserDto, logoUrl);
@@ -84,7 +97,19 @@ export class UserController {
   @UseInterceptors(
     FileInterceptor('logo', {
       storage: diskStorage({
-        destination: process.env.UPLOAD_PATH || './uploads/logos',
+        destination: async (req, file, cb) => {
+          const uploadPath = process.env.UPLOAD_PATH;
+
+          // 폴더가 존재하지 않으면 생성
+          try {
+            if (!fs.existsSync(uploadPath)) {
+              await fs.promises.mkdir(uploadPath, { recursive: true });
+            }
+            cb(null, uploadPath);
+          } catch (err) {
+            cb(err, uploadPath);
+          }
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -97,7 +122,7 @@ export class UserController {
   )
   async updateUser(
     @Param('id') id: number,
-    @Body() updateUserDto: UpdateUserDto, // body에 role을 포함
+    @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<User> {
     return this.userService.updateUser(id, updateUserDto, file);
@@ -116,7 +141,18 @@ export class UserController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: process.env.UPLOAD_PATH,
+        destination: async (req, file, cb) => {
+          const uploadPath = process.env.UPLOAD_PATH;
+
+          try {
+            if (!fs.existsSync(uploadPath)) {
+              await fs.promises.mkdir(uploadPath, { recursive: true });
+            }
+            cb(null, uploadPath);
+          } catch (err) {
+            cb(err, uploadPath);
+          }
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);

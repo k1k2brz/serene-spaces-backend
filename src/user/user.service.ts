@@ -31,6 +31,7 @@ export class UserService {
   // login 검사
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { email } });
+    console.log(user);
 
     if (!user) {
       throw new InvalidEmailException();
@@ -121,14 +122,22 @@ export class UserService {
         }
         user.logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
       }
-
-      Object.assign(user, updateUserDto);
     } else {
       // VENDOR가 아닌 경우 companyName과 logoUrl은 업데이트하지 않음
       delete updateUserDto.companyName;
       delete updateUserDto.logoUrl;
-      Object.assign(user, updateUserDto);
     }
+
+    if (updateUserDto.password) {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(
+        updateUserDto.password,
+        saltRounds,
+      );
+      updateUserDto.password = hashedPassword;
+    }
+
+    Object.assign(user, updateUserDto);
 
     return this.userRepository.save(user);
   }
