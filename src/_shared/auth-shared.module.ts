@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from '../user/token/refresh-token.entity';
 import { RefreshTokenService } from '../user/token/refresh-token.service';
 import { AccessToken } from '../user/token/access-token.entity';
+import { ProductCartOrderSharedModule } from './product-cart-order-shared.module';
 
 // 순환참조 방지용
 @Module({
@@ -21,6 +22,7 @@ import { AccessToken } from '../user/token/access-token.entity';
         signOptions: { expiresIn: '14d' },
       }),
     }),
+    ProductCartOrderSharedModule,
   ],
   providers: [UserService, AuthService, RefreshTokenService],
   exports: [UserService, AuthService, JwtModule, RefreshTokenService],

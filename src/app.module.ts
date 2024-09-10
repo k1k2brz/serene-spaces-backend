@@ -10,6 +10,8 @@ import { ReviewModule } from './review/review.module';
 import { CspMiddleware } from './csp/csp.middleware';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { join } from 'path';
     UserModule,
     AuthModule,
     ProductModule,
+    CartModule,
+    OrderModule,
     ReviewModule,
   ],
   controllers: [AppController],
