@@ -15,12 +15,15 @@ import { UserResponseDto } from './dto/response-user.dto';
 import { plainToInstance } from 'class-transformer';
 import { userRole } from '@/_configs';
 import path from 'path';
+import { Cart } from '@/cart/cart.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Cart)
+    private readonly cartRepository: Repository<Cart>,
   ) {}
 
   // User 엔티티를 저장 또는 업데이트하는 메서드
@@ -100,7 +103,17 @@ export class UserService {
       logoUrl,
     });
 
-    return this.userRepository.save(newUser);
+    // 유저 저장
+    const savedUser = await this.userRepository.save(newUser);
+
+    // 빈 장바구니 생성 및 유저와 연결
+    const cart = this.cartRepository.create({
+      user: savedUser,
+      items: [],
+    });
+    await this.cartRepository.save(cart);
+
+    return savedUser;
   }
 
   async updateUser(

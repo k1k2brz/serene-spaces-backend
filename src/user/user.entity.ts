@@ -1,9 +1,17 @@
 import { UserRole } from '@/_types';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { RefreshToken } from './token/refresh-token.entity';
 import { AccessToken } from './token/access-token.entity';
 import { Product } from '@/product/product.entity';
 import { Review } from '@/review/review.entity';
+import { Order } from '@/order/order.entity';
+import { Cart } from '@/cart/cart.entity';
 
 @Entity()
 export class User {
@@ -45,4 +53,10 @@ export class User {
 
   @OneToMany(() => Review, (review) => review.customer)
   reviews: Review[];
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
+
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart: Cart;
 }
