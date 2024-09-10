@@ -25,6 +25,9 @@ export class Product {
   @Column('simple-array') // 쉼표로 구분된 문자열로 배열을 저장 (ex: 배열이 image1.jpg,image2.jpg,image3.jpg로 저장)
   images: string[];
 
+  @Column('simple-array')
+  options: string[];
+
   @Column()
   companyName: string;
 

@@ -27,7 +27,6 @@ import { diskStorage } from 'multer';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  // 제품 등록 (authorization 추가)
   @Post('create')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(userRole.VENDOR, userRole.ADMIN)
@@ -35,7 +34,7 @@ export class ProductController {
     FilesInterceptor('images', 5, {
       // 'images' 필드에서 최대 5개의 파일을 처리
       storage: diskStorage({
-        destination: './uploads/product',
+        destination: process.env.UPLOAD_PRODUCT_PATH,
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -53,12 +52,10 @@ export class ProductController {
       throw new UnauthorizedException('User is not authenticated');
     }
 
-    // 파일 경로를 DTO의 images 필드에 추가
-    createProductDto.images = file.map((file) => file.filename);
-
-    console.log('File:', file);
-    console.log('Body:', createProductDto);
-    console.log('Received user from request:', req.user);
+    // 파일 경로를 DTO의 images 필드에 추가 하고 절대 경로 반환
+    createProductDto.images = file.map(
+      (file) => `/static/products/${file.filename}`,
+    );
 
     return this.productService.createProduct(createProductDto, req.user);
   }

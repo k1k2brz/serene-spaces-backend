@@ -14,6 +14,7 @@ import * as fs from 'fs';
 import { UserResponseDto } from './dto/response-user.dto';
 import { plainToInstance } from 'class-transformer';
 import { userRole } from '@/_configs';
+import path from 'path';
 
 @Injectable()
 export class UserService {
@@ -111,10 +112,65 @@ export class UserService {
       throw new Error('User not found.');
     }
 
+    if (updateUserDto.role === userRole.VENDOR) {
+      if (file) {
+        if (user.logoUrl) {
+          fs.unlinkSync(
+            `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
+          );
+        }
+        user.logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
+      }
+
+      Object.assign(user, updateUserDto);
+    } else {
+      // VENDOR가 아닌 경우 companyName과 logoUrl은 업데이트하지 않음
+      delete updateUserDto.companyName;
+      delete updateUserDto.logoUrl;
+      Object.assign(user, updateUserDto);
+    }
+
+    return this.userRepository.save(user);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    // 로고 이미지가 있는 경우 삭제
+    if (user.logoUrl) {
+      const logoPath = path.join(
+        process.env.UPLOAD_PATH,
+        user.logoUrl.split('/').pop(),
+      );
+
+      try {
+        if (fs.existsSync(logoPath)) {
+          fs.unlinkSync(logoPath);
+          console.log(`Logo image ${logoPath} has been deleted.`);
+        }
+      } catch (err) {
+        console.error(`Failed to delete logo image: ${err.message}`);
+        // 에러처리 추가
+      }
+    }
+
+    // 유저 삭제
+    await this.userRepository.delete(id);
+  }
+
+  // 로고 업로드
+  async uploadLogo(userId: number, file: Express.Multer.File): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
     if (file) {
-      // 기존 로고 이미지 삭제 로직 추가 (파일 시스템에서 삭제)
       if (user.logoUrl) {
-        // 로고 이미지 파일 경로로 삭제
         fs.unlinkSync(
           `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
         );
@@ -122,25 +178,35 @@ export class UserService {
       user.logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
     }
 
-    // 사용자 정보 업데이트
-    Object.assign(user, updateUserDto);
-
     return this.userRepository.save(user);
   }
 
-  async deleteUser(id: number): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id } });
+  // 로고 삭제
+  async deleteLogo(userId: number): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new Error('User not found.');
     }
 
-    // 로고 이미지가 있는 경우 삭제
     if (user.logoUrl) {
-      fs.unlinkSync(
-        `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
+      const logoPath = path.join(
+        process.env.UPLOAD_PATH,
+        user.logoUrl.split('/').pop(),
       );
+
+      try {
+        if (fs.existsSync(logoPath)) {
+          fs.unlinkSync(logoPath);
+          console.log(`Logo image ${logoPath} has been deleted.`);
+        }
+      } catch (err) {
+        console.error(`Failed to delete logo image: ${err.message}`);
+      }
+
+      user.logoUrl = null;
+      return this.userRepository.save(user);
     }
 
-    await this.userRepository.delete(id);
+    return user;
   }
 }

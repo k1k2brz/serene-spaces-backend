@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
@@ -12,6 +8,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { userRole } from '@/_configs';
 import { ProductNotFoundException } from '@/_exceptions/product/product-not-found.exception';
+import { ProductDeleteUnAuthorizedException } from '@/_exceptions/product/product-delete-unauthorized.exception';
+import { ProductUpdateUnAuthorizedException } from '@/_exceptions/product/product-update-unauthorized.exception';
 
 @Injectable()
 export class ProductService {
@@ -39,6 +37,7 @@ export class ProductService {
       where: { id },
       relations: ['reviews'],
     });
+    console.log(product);
     if (!product) {
       throw new ProductNotFoundException();
     }
@@ -59,14 +58,12 @@ export class ProductService {
     const product = await this.productRepository.findOne({ where: { id } });
 
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new ProductNotFoundException();
     }
 
     // 제품을 등록한 사용자 또는 admin만 수정 가능
     if (product.vendor.id !== user.id && user.role !== userRole.ADMIN) {
-      throw new UnauthorizedException(
-        'You do not have permission to update this product',
-      );
+      throw new ProductUpdateUnAuthorizedException();
     }
 
     Object.assign(product, updateProductDto);
@@ -78,14 +75,12 @@ export class ProductService {
     const product = await this.productRepository.findOne({ where: { id } });
 
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new ProductNotFoundException();
     }
 
     // 제품을 등록한 사용자 또는 admin만 삭제 가능
     if (product.vendor.id !== user.id && user.role !== userRole.ADMIN) {
-      throw new UnauthorizedException(
-        'You do not have permission to delete this product',
-      );
+      throw new ProductDeleteUnAuthorizedException();
     }
 
     await this.productRepository.delete(id);

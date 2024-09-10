@@ -6,8 +6,8 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
-  Put,
   Req,
   UploadedFile,
   UseGuards,
@@ -80,10 +80,24 @@ export class UserController {
 
   // 유저 수정
   @UseGuards(JwtAuthGuard)
-  @Put(':id')
+  @Patch(':id')
+  @UseInterceptors(
+    FileInterceptor('logo', {
+      storage: diskStorage({
+        destination: process.env.UPLOAD_PATH || './uploads/logos',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${file.fieldname}-${uniqueSuffix}-${file.originalname}`);
+        },
+      }),
+      fileFilter: imageFileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 이하로 파일 크기 제한
+    }),
+  )
   async updateUser(
     @Param('id') id: number,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: UpdateUserDto, // body에 role을 포함
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<User> {
     return this.userService.updateUser(id, updateUserDto, file);
@@ -113,7 +127,7 @@ export class UserController {
   )
   async uploadLogo(@UploadedFile() file: Express.Multer.File, @Req() req) {
     const userId = req.user.id;
-    return this.userService.updateUser(userId, {}, file);
+    return this.userService.uploadLogo(userId, file);
   }
 
   // 회사 로고 삭제
@@ -121,6 +135,6 @@ export class UserController {
   @Delete('delete-logo')
   async deleteLogo(@Req() req) {
     const userId = req.user.id;
-    return this.userService.updateUser(userId, { logoUrl: null });
+    return this.userService.deleteLogo(userId);
   }
 }
