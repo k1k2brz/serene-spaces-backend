@@ -14,12 +14,16 @@ import * as fs from 'fs';
 import { UserResponseDto } from './dto/response-user.dto';
 import { plainToInstance } from 'class-transformer';
 import { userRole } from '@/_configs';
+import path from 'path';
+import { Cart } from '@/cart/cart.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Cart)
+    private readonly cartRepository: Repository<Cart>,
   ) {}
 
   // User 엔티티를 저장 또는 업데이트하는 메서드
@@ -30,6 +34,7 @@ export class UserService {
   // login 검사
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { email } });
+    console.log(user);
 
     if (!user) {
       throw new InvalidEmailException();
@@ -98,7 +103,17 @@ export class UserService {
       logoUrl,
     });
 
-    return this.userRepository.save(newUser);
+    // 유저 저장
+    const savedUser = await this.userRepository.save(newUser);
+
+    // 빈 장바구니 생성 및 유저와 연결
+    const cart = this.cartRepository.create({
+      user: savedUser,
+      items: [],
+    });
+    await this.cartRepository.save(cart);
+
+    return savedUser;
   }
 
   async updateUser(
@@ -111,18 +126,30 @@ export class UserService {
       throw new Error('User not found.');
     }
 
-    if (file) {
-      // 기존 로고 이미지 삭제 로직 추가 (파일 시스템에서 삭제)
-      if (user.logoUrl) {
-        // 로고 이미지 파일 경로로 삭제
-        fs.unlinkSync(
-          `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
-        );
+    if (updateUserDto.role === userRole.VENDOR) {
+      if (file) {
+        if (user.logoUrl) {
+          fs.unlinkSync(
+            `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
+          );
+        }
+        user.logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
       }
-      user.logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
+    } else {
+      // VENDOR가 아닌 경우 companyName과 logoUrl은 업데이트하지 않음
+      delete updateUserDto.companyName;
+      delete updateUserDto.logoUrl;
     }
 
-    // 사용자 정보 업데이트
+    if (updateUserDto.password) {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(
+        updateUserDto.password,
+        saltRounds,
+      );
+      updateUserDto.password = hashedPassword;
+    }
+
     Object.assign(user, updateUserDto);
 
     return this.userRepository.save(user);
@@ -130,17 +157,78 @@ export class UserService {
 
   async deleteUser(id: number): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id } });
+
     if (!user) {
       throw new Error('User not found.');
     }
 
     // 로고 이미지가 있는 경우 삭제
     if (user.logoUrl) {
-      fs.unlinkSync(
-        `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
+      const logoPath = path.join(
+        process.env.UPLOAD_PATH,
+        user.logoUrl.split('/').pop(),
       );
+
+      try {
+        if (fs.existsSync(logoPath)) {
+          fs.unlinkSync(logoPath);
+          console.log(`Logo image ${logoPath} has been deleted.`);
+        }
+      } catch (err) {
+        console.error(`Failed to delete logo image: ${err.message}`);
+        // 에러처리 추가
+      }
     }
 
+    // 유저 삭제
     await this.userRepository.delete(id);
+  }
+
+  // 로고 업로드
+  async uploadLogo(userId: number, file: Express.Multer.File): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    if (file) {
+      if (user.logoUrl) {
+        fs.unlinkSync(
+          `${process.env.UPLOAD_PATH}/${user.logoUrl.split('/').pop()}`,
+        );
+      }
+      user.logoUrl = `${process.env.UPLOAD_PATH}/${file.filename}`;
+    }
+
+    return this.userRepository.save(user);
+  }
+
+  // 로고 삭제
+  async deleteLogo(userId: number): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    if (user.logoUrl) {
+      const logoPath = path.join(
+        process.env.UPLOAD_PATH,
+        user.logoUrl.split('/').pop(),
+      );
+
+      try {
+        if (fs.existsSync(logoPath)) {
+          fs.unlinkSync(logoPath);
+          console.log(`Logo image ${logoPath} has been deleted.`);
+        }
+      } catch (err) {
+        console.error(`Failed to delete logo image: ${err.message}`);
+      }
+
+      user.logoUrl = null;
+      return this.userRepository.save(user);
+    }
+
+    return user;
   }
 }

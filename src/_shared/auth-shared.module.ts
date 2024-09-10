@@ -5,9 +5,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshToken } from '../token/refresh-token.entity';
-import { RefreshTokenService } from '../token/refresh-token.service';
-import { AccessToken } from '../token/access-token.entity';
+import { RefreshToken } from '../user/token/refresh-token.entity';
+import { RefreshTokenService } from '../user/token/refresh-token.service';
+import { AccessToken } from '../user/token/access-token.entity';
+import { ProductCartOrderSharedModule } from './product-cart-order-shared.module';
 
 // 순환참조 방지용
 @Module({
@@ -21,6 +22,7 @@ import { AccessToken } from '../token/access-token.entity';
         signOptions: { expiresIn: '14d' },
       }),
     }),
+    ProductCartOrderSharedModule,
   ],
   providers: [UserService, AuthService, RefreshTokenService],
   exports: [UserService, AuthService, JwtModule, RefreshTokenService],

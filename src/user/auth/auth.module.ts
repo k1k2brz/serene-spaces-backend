@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { AuthSharedModule } from '@/user/shared/auth-shared.module';
+import { AuthSharedModule } from '@/_shared/auth-shared.module';
 import { AuthController } from './auth.controller';
 
 @Module({
