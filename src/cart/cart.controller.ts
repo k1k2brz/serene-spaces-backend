@@ -19,10 +19,12 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   // 현재 유저의 장바구니 조회
-  @Get()
+  @Get(':id')
   async getCart(@Req() req: Request) {
     const userId = req.user.id;
-    return this.cartService.getCart(userId);
+    const cart = await this.cartService.getCart(userId);
+
+    return cart;
   }
 
   // 장바구니에 상품 추가

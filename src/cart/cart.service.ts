@@ -18,10 +18,21 @@ export class CartService {
 
   // 유저 ID로 장바구니 가져오기
   async getCart(userId: number): Promise<Cart> {
-    return this.cartRepository.findOne({
+    const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ['items', 'items.product'],
     });
+
+    // 카트가 없으면 빈 객체 반환
+    if (!cart) {
+      return {
+        id: 0,
+        user: null,
+        items: [],
+      };
+    }
+
+    return cart;
   }
 
   // 장바구니에 상품 추가

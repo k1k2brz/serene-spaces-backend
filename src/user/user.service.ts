@@ -34,7 +34,6 @@ export class UserService {
   // login 검사
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { email } });
-    console.log(user);
 
     if (!user) {
       throw new InvalidEmailException();
