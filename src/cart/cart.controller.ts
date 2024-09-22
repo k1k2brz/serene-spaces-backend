@@ -35,9 +35,14 @@ export class CartController {
   ) {
     const userId = req.user.id;
     const { productId, quantity } = addToCartDto;
-    return this.cartService.addToCart(userId, productId, quantity);
-  }
+    const result = await this.cartService.addToCart(
+      userId,
+      productId,
+      quantity,
+    );
 
+    return result;
+  }
   // 장바구니에서 상품 삭제
   @Delete('delete/:itemId')
   async deleteFromCart(@Req() req: Request, @Param('itemId') itemId: number) {

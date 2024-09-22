@@ -4,10 +4,15 @@ import { Repository } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Product } from '@/product/product.entity';
 import { CartItem } from './cartitem/cart-item.entity';
+import { User } from '@/user/user.entity';
+import { ProductNotFoundException } from '@/_exceptions/product/product-not-found.exception';
+import { CartAlreadyProductException } from '@/_exceptions/cart/cart-already-product.exception';
 
 @Injectable()
 export class CartService {
   constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Cart)
     private readonly cartRepository: Repository<Cart>,
     @InjectRepository(CartItem)
@@ -36,44 +41,65 @@ export class CartService {
   }
 
   // 장바구니에 상품 추가
-  async addToCart(userId: number, id: number, quantity: number): Promise<Cart> {
+  async addToCart(
+    userId: number,
+    productId: number,
+    quantity: number,
+  ): Promise<{ message: string; code: string; cart?: Cart }> {
     const product = await this.productRepository.findOne({
-      where: { id },
+      where: { id: productId },
     });
     if (!product) {
-      throw new Error('Product not found');
+      throw new ProductNotFoundException();
     }
 
     let cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['items'],
+      relations: ['items', 'items.product'],
     });
+
     if (!cart) {
-      const user = await this.cartRepository.findOne({ where: { id } });
+      const user = await this.userRepository.findOne({ where: { id: userId } });
       cart = this.cartRepository.create({ user, items: [] });
+      await this.cartRepository.save(cart); // 새 장바구니 저장
     }
 
-    const cartItem = this.cartItemRepository.create({
-      cart,
-      product,
-      quantity,
-      price: product.price * quantity,
-    });
+    // 장바구니 내 중복된 상품 찾기
+    let cartItem = cart.items.find((item) => item.product.id === productId);
 
-    cart.items.push(cartItem);
-    await this.cartRepository.save(cart);
-    return cart;
+    if (cartItem) {
+      throw new CartAlreadyProductException();
+    } else {
+      // 카트에 없는 상품이면 새로 추가
+      cartItem = this.cartItemRepository.create({
+        cart,
+        product,
+        quantity,
+        price: product.price * quantity,
+      });
+      cart.items.push(cartItem);
+
+      await this.cartRepository.save(cart);
+
+      // 장바구니를 새로고침
+      cart = await this.cartRepository.findOne({
+        where: { id: cart.id },
+        relations: ['items', 'items.product'],
+      });
+
+      return { message: '장바구니 담기 성공', code: null, cart };
+    }
   }
 
   // 장바구니에서 상품 삭제
   async deleteFromCart(userId: number, itemId: number): Promise<void> {
-    const cart = await this.getCart(userId);
-    const itemIndex = cart.items.findIndex((item) => item.id === itemId);
-    if (itemIndex === -1) {
-      throw new Error('Item not found in cart');
+    const item = await this.cartItemRepository.findOne({
+      where: { id: itemId, cart: { user: { id: userId } } },
+    });
+    if (!item) {
+      throw new Error('해당 아이템이 존재하지 않음');
     }
-    cart.items.splice(itemIndex, 1);
-    await this.cartRepository.save(cart);
+    await this.cartItemRepository.remove(item);
   }
 
   // 장바구니 아이템 수량 업데이트
@@ -82,12 +108,13 @@ export class CartService {
     itemId: number,
     quantity: number,
   ): Promise<void> {
-    const cart = await this.getCart(userId);
-    const item = cart.items.find((item) => item.id === itemId);
+    const item = await this.cartItemRepository.findOne({
+      where: { id: itemId, cart: { user: { id: userId } } },
+    });
     if (!item) {
-      throw new Error('Item not found in cart');
+      throw new Error('해당 아이템이 존재하지 않음');
     }
     item.quantity = quantity;
-    await this.cartRepository.save(cart);
+    await this.cartItemRepository.save(item);
   }
 }
