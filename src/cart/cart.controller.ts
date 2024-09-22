@@ -19,10 +19,12 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   // 현재 유저의 장바구니 조회
-  @Get()
+  @Get(':id')
   async getCart(@Req() req: Request) {
     const userId = req.user.id;
-    return this.cartService.getCart(userId);
+    const cart = await this.cartService.getCart(userId);
+
+    return cart;
   }
 
   // 장바구니에 상품 추가
@@ -33,14 +35,19 @@ export class CartController {
   ) {
     const userId = req.user.id;
     const { productId, quantity } = addToCartDto;
-    return this.cartService.addToCart(userId, productId, quantity);
-  }
+    const result = await this.cartService.addToCart(
+      userId,
+      productId,
+      quantity,
+    );
 
+    return result;
+  }
   // 장바구니에서 상품 삭제
-  @Delete('remove/:itemId')
-  async removeFromCart(@Req() req: Request, @Param('itemId') itemId: number) {
+  @Delete('delete/:itemId')
+  async deleteFromCart(@Req() req: Request, @Param('itemId') itemId: number) {
     const userId = req.user.id;
-    return this.cartService.removeFromCart(userId, itemId);
+    return this.cartService.deleteFromCart(userId, itemId);
   }
 
   // 장바구니 아이템 수량 업데이트

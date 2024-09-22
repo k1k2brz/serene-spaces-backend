@@ -37,7 +37,6 @@ export class ProductService {
       where: { id },
       relations: ['reviews'],
     });
-    console.log(product);
     if (!product) {
       throw new ProductNotFoundException();
     }
