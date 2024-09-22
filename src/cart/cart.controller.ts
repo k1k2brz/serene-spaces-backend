@@ -39,10 +39,10 @@ export class CartController {
   }
 
   // 장바구니에서 상품 삭제
-  @Delete('remove/:itemId')
-  async removeFromCart(@Req() req: Request, @Param('itemId') itemId: number) {
+  @Delete('delete/:itemId')
+  async deleteFromCart(@Req() req: Request, @Param('itemId') itemId: number) {
     const userId = req.user.id;
-    return this.cartService.removeFromCart(userId, itemId);
+    return this.cartService.deleteFromCart(userId, itemId);
   }
 
   // 장바구니 아이템 수량 업데이트

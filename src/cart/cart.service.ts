@@ -66,7 +66,7 @@ export class CartService {
   }
 
   // 장바구니에서 상품 삭제
-  async removeFromCart(userId: number, itemId: number): Promise<void> {
+  async deleteFromCart(userId: number, itemId: number): Promise<void> {
     const cart = await this.getCart(userId);
     const itemIndex = cart.items.findIndex((item) => item.id === itemId);
     if (itemIndex === -1) {
